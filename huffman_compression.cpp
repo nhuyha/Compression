@@ -180,13 +180,13 @@ int main(int argc, char * argv[]) {
 
     //chuyển binary -> dec -> char + lưu output file
     for (int i=0; i<bitBuffer.size();i=i+8){     
-        string byteString=bitBuffer.substr(i,i+8);
+        string byteString=bitBuffer.substr(i,8);
         // writeBinaryFile(outputFile,byteString);
         int dec;
         for(int i=0; i<8;i++){
             dec+=(int)pow(2,7-i)*(byteString[i]-'0');
         }
-        char c=dec+'0';
+        c=dec+'0';
         outputFile.write(&c,1);
         //bitBuffer.erase(0,8);
     }
