@@ -5,12 +5,13 @@
 #include <string>
 #include <fstream>
 #include <bitset>
+#include <math.h>
 using namespace std;
 
 //Tạo huffman node
 struct huffman_node{
     int freq; //lưu tần suất
-    char c; //lưu nhị phân 0 1
+    char c; 
     huffman_node *left;
     huffman_node *right;
 };
@@ -44,7 +45,7 @@ huffman_node* createTree(){
         min_node.pop();
         huffman_node*leaf_2=min_node.top();
         min_node.pop();
-        p->c=leaf_1->c;
+        // p->c=leaf_1->c;
         p->left=leaf_1;
         p->right=leaf_2;
         p->freq=leaf_1->freq+leaf_2->freq;
@@ -96,7 +97,7 @@ int main(int argc, char * argv[]) {
     if(!inputFile.is_open()){
         cout<<"Error opening input file"<<endl;
         return 0;
-    }
+    } 
     
 
     //đọc file, tính tần suất kí tự
@@ -111,12 +112,6 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    // //create node
-    // min_node.push(createNode(29,'e'));
-    // min_node.push(createNode(30,'c'));
-    // min_node.push(createNode(15,'b'));
-    // min_node.push(createNode(10,'a'));
-    // min_node.push(createNode(16,'d'));
 
     // // test create tree
     huffman_node*tree=createTree();
@@ -134,39 +129,67 @@ int main(int argc, char * argv[]) {
 
     //create output file
     int pos=input.find(".");
+    string filetype=input.substr(pos+1);
     string output=input.substr(0,pos)+"_compressed.bin";
     ofstream outputFile(output,ios::binary);
     ifstream inputFile1(input);
     if(!outputFile.is_open()){
         cout<<"Error create output file"<<endl;
         return 0;
+    } else{
+        cout<<output<<endl;
     }
 
-    // chuyển từ .txt -> .bin
+    //lưu file type vào output
+    int filetype_size=filetype.length();
+    outputFile.write(reinterpret_cast<const char*>(&filetype_size),sizeof(filetype_size));
+    outputFile.write(filetype.c_str(),filetype_size);
+
+    //lưu hashmap
+    map<char,string>::iterator it;
+    
+    for (it=hashMap.begin();it!=hashMap.end();it++){
+        string codes="";
+        codes+=it->first+it->second;
+        outputFile.write(codes.c_str(),codes.length()+1);
+        // cout<<it->first<<' '<<it->second<<endl;
+    }
+    
+    //tính pad
+    int pad=0;
     string bitBuffer="";
     while(inputFile1.get(c)){
-        if(hashMap.find(c)!=hashMap.end()){
-            string binaryString=hashMap[c];
-            bitBuffer+=binaryString;
-
-            while(bitBuffer.size()>=8){
-                string byteString=bitBuffer.substr(0,8);
-                writeBinaryFile(outputFile,byteString);
-                bitBuffer.erase(0,8);
-            }
-        } else{
-            cout<<c<<" not found in hashmap"<<endl;
-            return 0;
-        }
+        string binaryString=hashMap[c];
+        bitBuffer+=binaryString;
+    }
+    if(bitBuffer.length()%8!=0){
+        pad=bitBuffer.length()%8;
+    }
+    // cout<<"pad: "<<pad<<endl;
+    for(int i=0; i<pad;i++){
+        bitBuffer='0'+bitBuffer;
     }
 
-    if(!bitBuffer.empty()){
-        while(bitBuffer.size()<8){
-            bitBuffer+='0';
-        }
-        writeBinaryFile(outputFile,bitBuffer);
-    }
+    //lưu pad
+    char null='\0';
+    char padding=pad+'0';
+    outputFile.write(&null,1);
+    outputFile.write(&padding,1);
+    outputFile.write(&null,1);
+    outputFile.write(&null,1);
 
+    //chuyển binary -> dec -> char + lưu output file
+    for (int i=0; i<bitBuffer.size();i=i+8){     
+        string byteString=bitBuffer.substr(i,i+8);
+        // writeBinaryFile(outputFile,byteString);
+        int dec;
+        for(int i=0; i<8;i++){
+            dec+=(int)pow(2,7-i)*(byteString[i]-'0');
+        }
+        char c=dec+'0';
+        outputFile.write(&c,1);
+        //bitBuffer.erase(0,8);
+    }
 
     inputFile1.close();
     outputFile.close();
