@@ -142,7 +142,7 @@ int main(int argc, char * argv[]) {
 
     //lưu file type vào output
     int filetype_size=filetype.length();
-    outputFile.write(reinterpret_cast<const char*>(&filetype_size),sizeof(filetype_size));
+    outputFile.write(reinterpret_cast<const char*>(&filetype_size),1);
     outputFile.write(filetype.c_str(),filetype_size);
 
     //lưu hashmap
