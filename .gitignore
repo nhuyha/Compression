@@ -1,2 +1,5 @@
 raw
 .vscode
+testing.txt
+testing_compressed.bin
+testing_decompressed.txt
