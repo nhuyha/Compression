@@ -1,7 +1,7 @@
 #include <iostream>
 #include <queue>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <fstream>
 #include <bitset>
@@ -55,17 +55,8 @@ huffman_node* createTree(){
     return root;
 }
 
-// trái -> phải -> root
-void postOrder(huffman_node* node) {
-    if (node != nullptr) {
-        postOrder(node->left);  
-        postOrder(node->right);  
-        std::cout << node->freq << " "<<node->c<<endl; 
-    }
-}
-
 //Tạo map kí tự -> chuỗi nhị phân 0 1
-map<char,string>hashMap;
+unordered_map<char,string>hashMap;
 void createMap(huffman_node*root, string str){
     if(!root->left&&!root->right){
         hashMap[root->c]=str;
@@ -76,13 +67,6 @@ void createMap(huffman_node*root, string str){
         createMap(root->left,str_left);
         createMap(root->right,str_right);
     }
-}
-
-// write byte to binary file
-void writeBinaryFile(ofstream &outputFile, const string &bits){
-    bitset<8> bitset(bits);
-    unsigned char byte =static_cast<unsigned char>(bitset.to_ulong()); // Convert bitset to unsigned char (byte)
-    outputFile.write(reinterpret_cast<char*>(&byte), sizeof(byte)); // Write byte to binary file
 }
 
 
@@ -113,13 +97,11 @@ int main(int argc, char * argv[]) {
     }
 
 
-    // // test create tree
     huffman_node*tree=createTree();
-    // // postOrder(tree); 
 
     //tạo hashMap  
     createMap(tree,"");
-    // map<char,string>::iterator it;
+    // unordered_map<char,string>::iterator it;
     // for (it=hashMap.begin();it!=hashMap.end();it++){
     //     cout<<it->first<<' '<<it->second<<endl;
     // }
@@ -131,7 +113,7 @@ int main(int argc, char * argv[]) {
     int pos=input.find(".");
     string filetype=input.substr(pos+1);
     string output=input.substr(0,pos)+"_compressed.bin";
-    ofstream outputFile(output,ios::binary);
+    ofstream outputFile(output,ios::binary);  
     ifstream inputFile1(input);
     if(!outputFile.is_open()){
         cout<<"Error create output file"<<endl;
@@ -142,17 +124,17 @@ int main(int argc, char * argv[]) {
 
     //lưu file type vào output
     int filetype_size=filetype.length();
-    outputFile.write(reinterpret_cast<const char*>(&filetype_size),1);
+    outputFile.write((char*)(&filetype_size),sizeof(filetype_size));
     outputFile.write(filetype.c_str(),filetype_size);
 
     //lưu hashmap
-    map<char,string>::iterator it;
-    
+    unordered_map<char,string>::iterator it;
     for (it=hashMap.begin();it!=hashMap.end();it++){
         string codes="";
         codes+=it->first+it->second;
+
         outputFile.write(codes.c_str(),codes.length()+1);
-        // cout<<it->first<<' '<<it->second<<endl;
+       
     }
     
     //tính pad
@@ -163,31 +145,30 @@ int main(int argc, char * argv[]) {
         bitBuffer+=binaryString;
     }
     if(bitBuffer.length()%8!=0){
-        pad=bitBuffer.length()%8;
+        pad=8-bitBuffer.length()%8;
     }
     // cout<<"pad: "<<pad<<endl;
     for(int i=0; i<pad;i++){
         bitBuffer='0'+bitBuffer;
     }
-
     //lưu pad
     char null='\0';
-    char padding=pad+'0';
     outputFile.write(&null,1);
-    outputFile.write(&padding,1);
-    outputFile.write(&null,1);
-    outputFile.write(&null,1);
-
+    outputFile.write((char*)&pad, sizeof(pad));
+    
     //chuyển binary -> dec -> char + lưu output file
+    int dec;
     for (int i=0; i<bitBuffer.size();i=i+8){     
         string byteString=bitBuffer.substr(i,8);
+       
         // writeBinaryFile(outputFile,byteString);
-        int dec;
-        for(int i=0; i<8;i++){
-            dec+=(int)pow(2,7-i)*(byteString[i]-'0');
+        dec=0;
+        for(int j=0; j<8;j++){
+            dec+=(int)pow(2,7-j)*(byteString[j]-'0');
+            // cout<<byteString[j]-'0'<<" ";
         }
-        c=dec+'0';
-        outputFile.write(&c,1);
+      
+        outputFile.write( (char*)&dec, sizeof(dec));
         //bitBuffer.erase(0,8);
     }
 
