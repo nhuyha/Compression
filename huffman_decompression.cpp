@@ -91,7 +91,7 @@ int main(int argc, char*argv[]){
        
     //đọc char -> dec -> binary
     string content="";
-    unsigned int dec;
+    unsigned char dec;
     while(inputFile.read((char*)(&dec), sizeof(dec))){
         content+=dec2bin(dec); 
     }

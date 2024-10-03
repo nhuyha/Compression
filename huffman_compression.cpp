@@ -157,20 +157,28 @@ int main(int argc, char * argv[]) {
     outputFile.write((char*)&pad, sizeof(pad));
     
     //chuyển binary -> dec -> char + lưu output file
-    int dec;
-    for (int i=0; i<bitBuffer.size();i=i+8){     
-        string byteString=bitBuffer.substr(i,8);
-       
-        // writeBinaryFile(outputFile,byteString);
-        dec=0;
-        for(int j=0; j<8;j++){
-            dec+=(int)pow(2,7-j)*(byteString[j]-'0');
-            // cout<<byteString[j]-'0'<<" ";
-        }
-      
-        outputFile.write( (char*)&dec, sizeof(dec));
-        //bitBuffer.erase(0,8);
+unsigned char byte = 0; // Use unsigned char to store each byte
+int bitCount = 0; // Count of bits collected
+
+for (size_t i = 0; i < bitBuffer.size(); i++) {
+    // Shift bit into the byte
+    byte = (byte << 1) | (bitBuffer[i] - '0'); // Shift left and add current bit
+    bitCount++;
+
+    // If we've collected 8 bits, write the byte to the output file
+    if (bitCount == 8) {
+        outputFile.write(reinterpret_cast<char*>(&byte), sizeof(byte));
+        byte = 0; // Reset the byte for the next 8 bits
+        bitCount = 0; // Reset the bit count
     }
+}
+
+// If there are any leftover bits that didn't make a full byte
+if (bitCount > 0) {
+    byte <<= (8 - bitCount); // Shift left to fill the remaining bits
+    outputFile.write(reinterpret_cast<char*>(&byte), sizeof(byte)); // Write the last byte
+}
+
 
     inputFile1.close();
     outputFile.close();
