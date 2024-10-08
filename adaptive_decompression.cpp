@@ -1,7 +1,8 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include <bitset>
+#include <bitset>  
+
 using namespace std;
 
 #define MAX_VAL 512
@@ -18,28 +19,9 @@ struct Node{
         value(v),weight(w),order(o),left(l),right(r),parent(p)
         {}
     Node():
-        value(0),weight(0),order(0),left(nullptr),right(nullptr),parent(nullptr)
+        value(-1),weight(0),order(0),left(nullptr),right(nullptr),parent(nullptr)
         {}
 };
-
-
-string sendCode(Node* Leaf){
-    string code="";
-    Node* curr=Leaf;
-    while(curr->parent){
-        if(curr->order==curr->parent->left->order){
-            code="0"+code;
-        }
-        else{
-            code="1"+code;
-        }
-        curr=curr->parent;
-    }
-    // if (code==""){
-    //     code="0";
-    // }
-    return code;
-}
 
 void update(Node*leaf){
     Node*curr=leaf->parent;
@@ -70,6 +52,7 @@ Node* AddNewLeaf(Node*currNYT,Node*NewLeaf){
     newNYT->parent = currNYT;
     newNYT->order = curr_order-2;
     NewLeaf->order = curr_order-1;
+    currNYT->value = 0;
     update(NewLeaf);
     return newNYT;
 }
@@ -92,32 +75,45 @@ Node* HighestOrder(map<char,Node*> LeafNodes,Node*Leaf){
     return Leaf;
 }
 
-void encoder(string word){
+void decoder(string word){
     map<char,Node*>LeafNodes;
-    Node*root=new Node(0,0,MAX_VAL,nullptr,nullptr,nullptr);
-    Node*currNYT=root;
-    for(auto c:word){
-        if(LeafNodes.find(c)==LeafNodes.end()){
-            Node*NewLeaf=new Node(c,1,0,nullptr,nullptr,currNYT);
-            cout<<sendCode(currNYT);
-            bitset< BIT_SIZE > x(c);
-            cout << x;  // print here
-            currNYT=AddNewLeaf(currNYT,NewLeaf);
-            LeafNodes.insert({c,NewLeaf});
+    Node*root = new Node(-1,0,MAX_VAL,nullptr,nullptr,nullptr);
+    
+    int i=0;
+    while(i<word.length()){
+        Node*curr = root;
+        while(curr->left){
+            if (word[i]=='0'){
+                curr=curr->left;
+            } else{
+                curr=curr->right;
+            }
+            i++;
         }
-        else{
-            Node*Leaf=LeafNodes[c];
-            cout<<sendCode(Leaf);
-            Node*maxOrder=HighestOrder(LeafNodes,Leaf);
+        if (curr->value == -1){
+            Node* currNYT = curr;
+            string new_word=word.substr(i,BIT_SIZE);
+            i+=BIT_SIZE;
+            bitset<BIT_SIZE>bits(new_word);
+            char c = char(bits.to_ulong());
+            cout<<c;
+            Node*newLeaf = new Node(c,1,0,nullptr,nullptr,currNYT);
+            currNYT = AddNewLeaf(curr,newLeaf);
+            LeafNodes.insert({c,newLeaf});
+            
+        } else{
+            char c= (char) curr->value;
+            cout<<c;
+            Node*Leaf = LeafNodes[c];
+            Node*maxOrder = HighestOrder(LeafNodes,Leaf);
             maxOrder->weight++;
             update(maxOrder);
-        }
+        }   
     }
 }
-
 int main(){
     string word;
     cin>>word;
-    encoder(word);
+    decoder(word);
     return 0;
 }
