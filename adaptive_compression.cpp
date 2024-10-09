@@ -92,32 +92,34 @@ Node* HighestOrder(map<char,Node*> *LeafNodes,Node*Leaf){
     return Leaf;
 }
 
-void encoder(string word){
-    map<char,Node*>LeafNodes;
-    Node*root=new Node(0,0,MAX_VAL,nullptr,nullptr,nullptr);
-    Node*currNYT=root;
-    for(auto c:word){
-        if(LeafNodes.find(c)==LeafNodes.end()){
+string encoder(char c,map<char,Node*>&LeafNodes,Node*&currNYT){
+    string codes="";
+    if(LeafNodes.find(c)==LeafNodes.end()){
             Node*NewLeaf=new Node(c,1,0,nullptr,nullptr,currNYT);
-            cout<<sendCode(currNYT);
+            codes=codes+sendCode(currNYT);
             bitset< BIT_SIZE > x(c);
-            cout << x;  // print here
+            codes=codes+ x.to_string();    // print here
             currNYT=AddNewLeaf(currNYT,NewLeaf);
             LeafNodes.insert({c,NewLeaf});
         }
-        else{
+    else{
             Node*Leaf=LeafNodes[c];
-            cout<<sendCode(Leaf);
+            codes=codes+sendCode(Leaf);
             Node*maxOrder=HighestOrder(&LeafNodes,Leaf);
             maxOrder->weight++;
             update(maxOrder);
         }
-    }
+    return codes;
 }
 
 int main(){
     string word;
     cin>>word;
-    encoder(word);
+    map<char,Node*>LeafNodes;
+    Node*root=new Node(-1,0,MAX_VAL,nullptr,nullptr,nullptr);
+    Node*currNYT=root;
+    for(int i=0;i<word.length();i++){
+        cout<<encoder(word[i],LeafNodes,currNYT);
+    }
     return 0;
 }
