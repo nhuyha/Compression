@@ -74,10 +74,10 @@ Node* AddNewLeaf(Node*currNYT,Node*NewLeaf){
     return newNYT;
 }
 
-Node* HighestOrder(map<char,Node*> LeafNodes,Node*Leaf){
+Node* HighestOrder(map<char,Node*> *LeafNodes,Node*Leaf){
     Node*max=Leaf;
-    for(auto&l : LeafNodes){
-        if(l.second->weight == max->weight && l.second->order > max->order){
+    for(auto&l : *LeafNodes){
+        if(l.second->weight == max->weight && l.second->order > max->order ){
             max=l.second;
         }
     }
@@ -85,8 +85,8 @@ Node* HighestOrder(map<char,Node*> LeafNodes,Node*Leaf){
         int temp=Leaf->value;
         Leaf->value=max->value;
         max->value=temp;
-        LeafNodes[(char)max->value]=Leaf;
-        LeafNodes[(char)Leaf->value]=max;
+        (*LeafNodes)[(char)max->value]=max;
+        (*LeafNodes)[(char)Leaf->value]=Leaf;
         return max;
     }
     return Leaf;
@@ -108,7 +108,7 @@ void encoder(string word){
         else{
             Node*Leaf=LeafNodes[c];
             cout<<sendCode(Leaf);
-            Node*maxOrder=HighestOrder(LeafNodes,Leaf);
+            Node*maxOrder=HighestOrder(&LeafNodes,Leaf);
             maxOrder->weight++;
             update(maxOrder);
         }
