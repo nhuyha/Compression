@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <string>
 #include <bitset>  
@@ -76,8 +77,9 @@ Node* HighestOrder(map<char,Node*> *LeafNodes,Node*Leaf){
     return Leaf;
 }
 
-void decoder(string word){
+string decoder(string word){
     map<char,Node*>LeafNodes;
+    string codes="";
     Node*root = new Node(-1,0,MAX_VAL,nullptr,nullptr,nullptr);
     
     int i=0;
@@ -97,24 +99,76 @@ void decoder(string word){
             i+=BIT_SIZE;
             bitset<BIT_SIZE>bits(new_word);
             char c = char(bits.to_ulong());
-            cout<<c;
+            codes+=c;
             Node*newLeaf = new Node(c,1,0,nullptr,nullptr,currNYT);
             currNYT = AddNewLeaf(curr,newLeaf);
             LeafNodes.insert({c,newLeaf});
             
         } else{
             char c= (char) curr->value;
-            cout<<c;
+            codes+=c;
             Node*Leaf = LeafNodes[c];
             Node*maxOrder = HighestOrder(&LeafNodes,Leaf);
             maxOrder->weight++;
             update(maxOrder);
         }   
     }
+    return codes;
 }
-int main(){
-    string word;
-    cin>>word;
-    decoder(word);
+
+
+int main(int argc, char*argv[]){
+    if (argc!=2){
+        cout<<"Invalid cmd"<<endl;
+        return 0;
+    }
+    string input=argv[1];
+    ifstream inputFile(input, ios::binary);
+    if(!inputFile.is_open()){
+        cout<<"Error opening input file"<<endl;
+        return 0;
+    }
+
+    //đọc filetype
+    string filetype="";
+    char c;
+    int filetype_size;
+    inputFile.read((char*)(&filetype_size), sizeof(filetype_size)); 
+    while(filetype_size--){
+        inputFile.read(&c,1);
+        filetype=filetype+c;
+    }
+
+    //tạo outputfile
+    int pos=input.find('_');
+    string output=input.substr(0,pos)+"_decompressed2"+'.'+filetype;
+    ofstream outputFile(output);
+  
+
+    if(!outputFile.is_open()){
+        cout<<"Error create output file"<<endl;
+        return 0;
+    }
+    else {
+        cout<<output<<endl;
+    }
+
+    //đọc pad
+    int pad;
+    inputFile.read((char*)(&pad), sizeof(pad));
+    cout<<pad<<endl;
+
+    string content="";
+    unsigned char dec;
+    while(inputFile.read(reinterpret_cast<char*>(&c), sizeof(c))){
+        content+=bitset<8>(c).to_string();
+    }
+    content.erase(0,pad);
+
+    outputFile<<decoder(content);
+
+    inputFile.close();
+    outputFile.close();
+    cout<<"Decompression completed successfully!"<<endl;
     return 0;
 }
