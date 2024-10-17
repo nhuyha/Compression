@@ -5,7 +5,7 @@
 #include <bitset>
 using namespace std;
 
-#define MAX_VAL 512
+#define MAX_VAL 513
 #define BIT_SIZE 8
 
 struct Node{
@@ -152,7 +152,7 @@ int main(int argc, char * argv[]){
     while(inputFile.get(c)){
         bitBuffer+=encoder(c,LeafNodes,currNYT);
     }
-    // cout<<bitBuffer<<endl;
+    cout<<bitBuffer.length()<<endl;
 
 
     //tính pad
