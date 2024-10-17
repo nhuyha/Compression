@@ -4,9 +4,33 @@
 #include <map>
 #include <unordered_map>
 #include <random>
+
 using namespace std;
 
-vector <long long> encoding(string s,unordered_map<string,long long>&table){
+string generateBinaryString(long long length, double p0, double p1) {
+    string binaryString;
+    random_device rd;  // Seed for the random number engine
+    mt19937 gen(rd()); // Standard mersenne_twister_engine
+    uniform_real_distribution<> dis(0.0, 1.0); // Distribution range [0.0, 1.0]
+
+    for (long long i = 0; i < length; ++i) {
+        double randomValue = dis(gen); // Generate random number between 0 and 1
+        if (randomValue < p0) {
+            binaryString += '0';
+        } else {
+            binaryString += '1';
+        }
+    }
+    
+    return binaryString;
+}
+
+vector <long long> encoding(string s){
+    unordered_map<string,long long>table;
+    table["0"]=0;
+    table["1"]=1;
+    cout<<"Table: "<<endl;
+    
     int code=2;
     vector <long long> output;
     string p="",c="";
@@ -62,11 +86,11 @@ string decoder(vector<long long>input){
     return output;
 }
 int main() {
-    string binaryString="01111111111000000000000101000000001000000000000000101001010100100";
-    unordered_map<string,long long>table;
-    table["0"]=0;
-    table["1"]=1;cout<<"Table: "<<endl;
-    vector<long long>output=encoding(binaryString,table);
+    long long length = 100;
+    double p0 = 0.8; 
+    double p1 = 0.2;
+    string binaryString = generateBinaryString(length, p0, p1);
+    vector<long long>output=encoding(binaryString);
     
     cout<<"Output: "<<endl;
     for(auto i:output){
